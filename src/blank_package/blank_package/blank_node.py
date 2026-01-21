@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import rclpy
+import time
 from rclpy.node import Node
 from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped
 from std_msgs.msg import ColorRGBA, Header
@@ -17,7 +18,7 @@ class Blinker(Node):
 
         self.timer = self.create_timer(1, self.change_color)
         self.move_forward()
-        sleep(3)
+        time.sleep(3)
         self.stop()
 
     def change_color(self):
