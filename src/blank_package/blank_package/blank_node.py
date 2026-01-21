@@ -11,7 +11,8 @@ class Blinker(Node):
     def __init__(self):
         super().__init__('blinker')
         self.vehicle_name = os.getenv('VEHICLE_NAME')
-        self.publisher = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
+        self.led_pub = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
+        self.wheel_pub = self.create_publisher(WheelsCmdStamped, f'/{self.vehicle_name}/wheels_cmd', 1)
         self.timer = self.create_timer(1, self.move_forward)
 
     def change_color(self):
@@ -24,7 +25,7 @@ class Blinker(Node):
         pattern5 = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)
 
         msg.rgb_vals = [pattern1] + [pattern2] + [pattern3] + [pattern4] + [pattern5]
-        self.publisher.publish(msg)
+        self.led_pub.publish(msg)
 
     def run_wheels(self, vel_left, vel_right):
         wheel_msg = WheelsCmdStamped()
@@ -36,7 +37,7 @@ class Blinker(Node):
         wheel_msg.vel_left = vel_left
         wheel_msg.vel_right = vel_right
 
-        self.wheels_pub.publish(wheel_msg)
+        self.wheel_pub.publish(wheel_msg)
 
     def move_forward(self):
         self.get_logger().info("Moving forward")
