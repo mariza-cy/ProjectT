@@ -16,6 +16,9 @@ class Blinker(Node):
         self.wheel_pub = self.create_publisher(WheelsCmdStamped, f'/{self.vehicle_name}/wheels_cmd', 1)
 
         self.timer = self.create_timer(1, self.change_color)
+        blinker.move_forward()
+        sleep(3)
+        blinker.stop()
 
     def change_color(self):
         msg = LEDPattern()
@@ -53,9 +56,6 @@ def main():
     rclpy.init()
     blinker = Blinker()
     rclpy.spin(blinker)
-    blinker.move_forward()
-    sleep(3)
-    blinker.stop()
     rclpy.shutdown()
 
 
