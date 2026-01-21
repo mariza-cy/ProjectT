@@ -20,7 +20,7 @@ class Blinker(Node):
         self.timer = self.create_timer(1, self.change_color)
         self.move_forward()
         time.sleep(3)
-        self.stop()
+        # self.stop()
         # self.timer = self.create_timer(2, self.change_color)
         # time.sleep(1)
         # self.timer = self.create_timer(2, self.change_color_white)
