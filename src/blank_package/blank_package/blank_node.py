@@ -3,7 +3,7 @@ import os
 import rclpy
 import time
 from rclpy.node import Node
-from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped
+from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped, CompressedImage
 from std_msgs.msg import ColorRGBA, Header
 
 
@@ -12,15 +12,21 @@ class Blinker(Node):
         super().__init__('blinker')
         self.vehicle_name = os.getenv('VEHICLE_NAME')
 
+        self.output_dir = "/workspace/images/"
+        os.makedirs(self.output_dir, exist_ok=True)
+
         self.led_pub = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
         self.wheel_pub = self.create_publisher(WheelsCmdStamped, f'/{self.vehicle_name}/wheels_cmd', 1)
+        self.create_subscription(CompressedImage, f'/{self.vehicle_name}/image/compressed', self.save_image, 10)
 
-        self.counter1 = 0
-        self.counter2 = 0
+        self.counter = 0
 
-        self.timer = self.create_timer(1, self.change_color)
-        self.timer = self.create_timer(1, self.move_forward)
-        self.timer = self.create_timer(1, self.change_color_blink)
+        # self.counter1 = 0
+        # self.counter2 = 0
+
+        # self.timer = self.create_timer(1, self.change_color)
+        # self.timer = self.create_timer(1, self.move_forward)
+        # self.timer = self.create_timer(1, self.change_color_blink)
 
     def change_color(self):
         msg = LEDPattern()
@@ -50,10 +56,6 @@ class Blinker(Node):
     def run_wheels(self, vel_left, vel_right):
         wheel_msg = WheelsCmdStamped()
 
-        # header = Header()
-        # header.stamp = self.get_clock().now().to_msg()
-
-        # wheel_msg.header = header
         wheel_msg.vel_left = vel_left
         wheel_msg.vel_right = vel_right
 
@@ -70,6 +72,14 @@ class Blinker(Node):
     def stop(self):
         self.get_logger().info("Stopping")
         self.run_wheels(0.0, 0.0)
+
+    def save_image(self):
+        if self.counter % 30 == 0:
+            with open(self.output_dir + str(self.counter) + '.jpg', 'wb') as f:
+                self.get_logger().info(f'Saving image {self.counter}')
+                f.write(msg.data)
+        self.counter += 1
+
 
 def main():
     rclpy.init()

@@ -69,7 +69,7 @@ if __name__ == '__main__':
 ---
 
 ### LEDs
-Message type: `LEDPattern`  
+Message type: `LEDPattern`\
 Topic: `/duckie05/led_pattern`
 
 Libraries:
@@ -95,7 +95,7 @@ self.led_pub.publish(msg)
 ---
 
 ### Wheels
-Message type: `LEDPattern`  
+Message type: `WheelsCmdStamped`\
 Topic: `/duckie05/wheels_cmd`
 
 Libraries:
@@ -115,11 +115,6 @@ Template to publish:
 ```py
 wheel_msg = WheelsCmdStamped()
 
-# Do we actually need these?
-header = Header()
-header.stamp = self.get_clock().now().to_msg()
-
-wheel_msg.header = header
 wheel_msg.vel_left = [LEFT VELOCITY]
 wheel_msg.vel_right = [RIGHT VELOCITY]
 
@@ -132,8 +127,8 @@ self.wheel_pub.publish(wheel_msg)
 
 [TODO] Finish + check these tomorrow ig
 
-Message type: `CompressedImage`
-
+Message type: `CompressedImage`\
+Topic: `/duckie05/image/compressed`
 
 Libraries:
 ```py
