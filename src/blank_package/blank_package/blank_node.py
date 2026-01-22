@@ -103,7 +103,7 @@ class Blinker(Node):
         else:
             obstacle = False
 
-        counter += 1
+        self.counter += 1
 
 
 def main():
