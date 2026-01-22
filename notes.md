@@ -133,18 +133,31 @@ self.wheel_pub.publish(wheel_msg)
 
 [TODO] Finish + check these tomorrow ig
 
-Message type: `Image`/`CompressedImage`
+Message type: `CompressedImage`
+
 
 Libraries:
 ```py
 from sensor_msgs.msg import CompressedImage
 ```
-or
-```py
-from sensor_msgs.msg import Image
-```
 
 In `__init()__`:
+```py
+self.output_dir = "/workspace/images/"
+os.makedirs(self.output_dir, exist_ok=True)
+self.vehicle_name = os.getenv('VEHICLE_NAME')
+self.counter = 0
+self.create_subscription(CompressedImage, f'/{self.vehicle_name}/image/compressed', self.save_image, 10)
+```
+
+To save the images:
+```py
+if self.counter % 30 == 0:
+    with open(self.output_dir + str(self.counter) + '.jpg', 'wb') as f:
+        self.get_logger().info(f'Saving image {self.counter}')
+        f.write(msg.data)
+self.counter += 1
+```
 
 ---
 
