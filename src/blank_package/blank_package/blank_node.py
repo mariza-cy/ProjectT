@@ -74,7 +74,7 @@ class Blinker(Node):
         self.get_logger().info("Stopping")
         self.run_wheels(0.0, 0.0)
 
-    def save_image(self):
+    def save_image(self, msg):
         if self.counter % 30 == 0:
             with open(self.output_dir + str(self.counter) + '.jpg', 'wb') as f:
                 self.get_logger().info(f'Saving image {self.counter}')
