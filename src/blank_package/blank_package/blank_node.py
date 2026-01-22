@@ -82,7 +82,7 @@ class Blinker(Node):
         elif self.counter==3:
             self.turn_right()
         elif self.counter==7:
-            self.turn left
+            self.turn_left()
         else:
             self.stop()
 
