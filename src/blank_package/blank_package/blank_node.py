@@ -77,7 +77,7 @@ class Blinker(Node):
         self.run_wheels(0.0, 0.0)
 
     def move(self):
-        if self.counter<=2 or (4<=self.counter and 6<=self.counter):
+        if self.counter<=2 or (4<=self.counter and self.counter<=6):
             self.move_forward()
         elif self.counter==3:
             self.turn_right()
@@ -86,7 +86,7 @@ class Blinker(Node):
         else:
             self.stop()
         
-        if self.counter<8:
+        if self.counter<10:
             self.counter+=1
 
     # def save_image(self, msg):
