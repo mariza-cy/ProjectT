@@ -3,7 +3,8 @@ import os
 import rclpy
 import time
 from rclpy.node import Node
-from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped, CompressedImage
+from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped
+from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import ColorRGBA, Header
 
 
