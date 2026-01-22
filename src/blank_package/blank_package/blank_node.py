@@ -86,8 +86,8 @@ class Blinker(Node):
         else:
             self.stop()
         
-        if counter<8:
-            counter+=1
+        if self.counter<8:
+            self.counter+=1
 
     # def save_image(self, msg):
     #     if self.counter % 30 == 0:
