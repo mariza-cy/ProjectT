@@ -25,7 +25,7 @@ class DriveToTarget (Node):
 
         self.WHEEL_RADIUS = 0.033  # readings not accurate (radius of wheels)   TO CALIBRATE       DONE
         self.WHEEL_BASE = 0.06  # readings not accurate (dist. between encoders)  TO CALIBRATE     DONE
-        self.TICKS_PER_REV = None
+        self.TICKS_PER_REV = 135
 
 
         self.x = 0.0
@@ -50,6 +50,10 @@ class DriveToTarget (Node):
 
 
         self.wheel_pub = self.create_publisher(WheelsCmdStamped, f"/{self.vehicle}/wheels_driver_node/wheels_cmd", self.tick, 10)     #Pub to duckie duckie's motors so he can move
+
+
+        self.timer = self.create_timer(0.1, self.control_loop)
+
 
 
 
@@ -120,23 +124,22 @@ class DriveToTarget (Node):
         return forward - turn, forward + turn
 
 
-    def run(self, args=None):
-        rate = rclpy.Rate(10)
+    def control_loop(self):
 
-        while not rclpy.is_shutdown():
+        if self.left_ticks is None or self.right_ticks is None:
+            return
 
-            if self.prev_left_ticks is None or self.prev_right_ticks is None:
-                self.prev_left_ticks = self.left_ticks
-                self.prev_right_ticks = self.right_ticks
-                self.odom_ready = True                                 #to make sure duckie duckie starts at the right time
-                return
+        if self.prev_left_ticks is None or self.prev_right_ticks is None:
+            self.prev_left_ticks = self.left_ticks
+            self.prev_right_ticks = self.right_ticks
+            self.odom_ready = True                                 #to make sure duckie duckie starts at the right time
+            return
 
             self.update_odometry()
 
 
-            if not self.odom_ready:
-                rate.sleep()
-                continue              #duckie duckie no move, VERY SADDDDD
+        if not self.odom_ready:
+            return                  #duckie duckie no move, VERY SADDDDD
 
             left_t, right_t = self.compute_control()
 
@@ -150,9 +153,11 @@ class DriveToTarget (Node):
 
 if __name__ == '__main__':
    print("HOPES AND PRAYERS")               #HOPES AND PRAYERS
+   rclpy.init(args=args)
    node = DriveToTarget()
-   node.run()
-   rclpy.spin()
+   rclpy.spin(node)
+   node.destroy_node()
+   rclpy.shutdown()
 
    #CRASH OUT COUNT: 5
 
