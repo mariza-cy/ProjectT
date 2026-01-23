@@ -50,22 +50,17 @@ class DriveToTarget (Node):
     QoSProfile(depth=10))           #Sub to duckie duckie's right encoder
 
 
-        self.wheel_pub = self.create_publisher(WheelsCmdStamped, f"/{self.vehicle}/wheels_driver_node/wheels_cmd", self.tick, 10)     #Pub to duckie duckie's motors so he can move
+        self.wheel_pub = self.create_publisher(WheelsCmdStamped, f"/{self.vehicle}/wheels_driver_node/wheels_cmd", 10)     #Pub to duckie duckie's motors so he can move
 
 
         self.timer = self.create_timer(0.1, self.control_loop)
 
 
     def left_encoder_callback(self, msg):
-        self.get_logger().info(f"Left ticks: {msg.data}")
+        self.left_ticks = msg.data
 
     def right_encoder_callback(self, msg):
-            self.get_logger().info(f"Right ticks: {msg.data}") #dataaaaaa
-
-    def tick(self, msg):
-        self.left_ticks = msg.data    
-
-
+        self.right_ticks = msg.data
 
 
     def tick_callback(self, msg):
@@ -157,7 +152,8 @@ class DriveToTarget (Node):
         msg = WheelsCmdStamped()
         msg.vel_left = left_t         #duckie's motors get power
         msg.vel_right = right_t       #duckie's motors get power
-        self.cmd_pub.publish(msg)
+        self.wheel_pub.publish(msg)
+
 
 
 
