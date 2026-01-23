@@ -29,7 +29,7 @@ class Blinker(Node):
 
     def save_image(self, msg):
         self.get_logger().info(f'take_image: {self.take_image}, same_obstacle: {self.same_obstacle}')
-        if self.take_image and not same_obstacle:
+        if self.take_image and not self.same_obstacle:
             self.get_logger().info(f'Obstacle detected - Saving image #{self.image_counter}')
             self.image_counter += 1
             with open(self.output_dir + 'Obstacle ' + str(self.image_counter) + '.jpg', 'wb') as f:
