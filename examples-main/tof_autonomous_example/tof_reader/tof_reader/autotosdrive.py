@@ -61,10 +61,10 @@ class DriveToTarget (Node):
 
     def tick_callback(self, msg):
         if 'left' in msg.header.frame_id.lower():
-             if self.left_ticks is not None:
+            if self.left_ticks is not None:
                 dl = msg.data - self.left_ticks
                 self.left_delta += dl
-             self.left_ticks = msg.data
+            self.left_ticks = msg.data
 
         elif 'right' in msg.header.frame_id.lower():
             if self.right_ticks is not None:
@@ -72,30 +72,32 @@ class DriveToTarget (Node):
                 self.right_delta += dr
             self.right_ticks = msg.data
 
-            # Only update odometry if both wheels have moved at least 1 tick
-            if self.left_delta != 0 and self.right_delta != 0:
-                dist_l = 2 * math.pi * self.WHEEL_RADIUS * (self.left_delta / self.TICKS_PER_REV)
-                dist_r = 2 * math.pi * self.WHEEL_RADIUS * (self.right_delta / self.TICKS_PER_REV)
+            # Only update odometry and publish if both wheels have non-zero delta
+        if self.left_delta != 0 and self.right_delta != 0:
+            dist_l = 2 * math.pi * self.WHEEL_RADIUS * (self.left_delta / self.TICKS_PER_REV)
+            dist_r = 2 * math.pi * self.WHEEL_RADIUS * (self.right_delta / self.TICKS_PER_REV)
 
-                ds = (dist_l + dist_r) / 2
-                dtheta = (dist_r - dist_l) / self.WHEEL_BASE
+            ds = (dist_l + dist_r) / 2
+            dtheta = (dist_r - dist_l) / self.WHEEL_BASE
 
-                self.x += ds * math.cos(self.theta)
-                self.y += ds * math.sin(self.theta)
-                self.theta += dtheta
+            self.x += ds * math.cos(self.theta)
+            self.y += ds * math.sin(self.theta)
+            self.theta += dtheta
 
                 # Reset deltas
-                self.left_delta = 0
-                self.right_delta = 0
+            self.left_delta = 0
+            self.right_delta = 0
 
-                # Compute control
-                left_t, right_t = self.compute_control()
-                msg_pub = WheelsCmdStamped()
-                msg_pub.vel_left = left_t
-                msg_pub.vel_right = right_t
-                self.wheel_pub.publish(msg_pub)
-                self.get_logger().info(
-                    f"CMD → left: {left_t:.2f}, right: {right_t:.2f}, x: {self.x:.2f}, y: {self.y:.2f}, theta: {self.theta:.2f}")
+            # Compute and publish control
+            left_t, right_t = self.compute_control()
+            msg_pub = WheelsCmdStamped()
+            msg_pub.vel_left = left_t
+            msg_pub.vel_right = right_t
+            self.wheel_pub.publish(msg_pub)
+
+            self.get_logger().info(
+                f"CMD → left: {left_t:.2f}, right: {right_t:.2f}, x: {self.x:.2f}, y: {self.y:.2f}, theta: {self.theta:.2f}"
+            )
 
         # After updating odometry, immediately compute control
         if self.left_ticks is not None and self.right_ticks is not None:
