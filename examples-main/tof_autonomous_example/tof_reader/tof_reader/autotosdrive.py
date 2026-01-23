@@ -60,6 +60,7 @@ class DriveToTarget (Node):
         self.timer = self.create_timer(0.1, self.control_loop)
 
     def tick_callback(self, msg):
+        # Update deltas for each wheel
         if 'left' in msg.header.frame_id.lower():
             if self.left_ticks is not None:
                 dl = msg.data - self.left_ticks
@@ -72,11 +73,13 @@ class DriveToTarget (Node):
                 self.right_delta += dr
             self.right_ticks = msg.data
 
-            # Only update odometry and publish if both wheels have non-zero delta
+        # Only update odometry and publish if both wheels have moved at least 1 tick
         if self.left_delta != 0 and self.right_delta != 0:
+            # Compute distances
             dist_l = 2 * math.pi * self.WHEEL_RADIUS * (self.left_delta / self.TICKS_PER_REV)
             dist_r = 2 * math.pi * self.WHEEL_RADIUS * (self.right_delta / self.TICKS_PER_REV)
 
+            # Update robot pose
             ds = (dist_l + dist_r) / 2
             dtheta = (dist_r - dist_l) / self.WHEEL_BASE
 
@@ -84,12 +87,14 @@ class DriveToTarget (Node):
             self.y += ds * math.sin(self.theta)
             self.theta += dtheta
 
-                # Reset deltas
+            # Reset deltas
             self.left_delta = 0
             self.right_delta = 0
 
-            # Compute and publish control
+            # Compute wheel commands
             left_t, right_t = self.compute_control()
+
+            # Publish motor commands
             msg_pub = WheelsCmdStamped()
             msg_pub.vel_left = left_t
             msg_pub.vel_right = right_t
@@ -173,44 +178,6 @@ class DriveToTarget (Node):
             right = math.copysign(min_speed, right)
 
         return left, right
-
-
-    def control_loop(self):
-
-        if self.left_ticks is None or self.right_ticks is None:
-          return
-
-        if not (self.left_updated and self.right_updated):
-          return
-
-        # Reset updates of duckie duckie
-        self.left_updated = False
-        self.right_updated = False
-
-    # init odometry of duckie dcukieeeeeeeeeeee
-        if self.prev_left_ticks is None or self.prev_right_ticks is None:
-           self.prev_left_ticks = self.left_ticks
-           self.prev_right_ticks = self.right_ticks
-           self.odom_ready = True
-           return
-
-
-        self.update_odometry()
-
-        if not self.odom_ready:
-           return
-
-        # Compute control
-        left_t, right_t = self.compute_control()
-
-
-        msg = WheelsCmdStamped()
-        msg.vel_left = left_t
-        msg.vel_right = right_t
-        self.wheel_pub.publish(msg)
-
-
-
 
 
 
