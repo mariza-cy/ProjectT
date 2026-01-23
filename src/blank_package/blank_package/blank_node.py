@@ -29,13 +29,13 @@ class Blinker(Node):
 
     def save_image(self, msg):
         if self.take_image and not self.same_obstacle:
+            self.take_image = False
+            self.same_obstacle = True
+
             self.get_logger().info(f'Obstacle detected - Saving image #{self.image_counter}')
             self.image_counter += 1
             with open(self.output_dir + 'Obstacle ' + str(self.image_counter) + '.jpg', 'wb') as f:
                 f.write(msg.data)
-
-            self.take_image = False
-            self.same_obstacle = True
 
     def run_wheels(self, vel_left, vel_right):
         wheel_msg = WheelsCmdStamped()
@@ -102,6 +102,7 @@ class Blinker(Node):
             self.lights_red()
             self.turn_right()
         else:
+            self.take_image = False
             self.same_obstacle = False
             self.lights_white()
             self.move_forward()
