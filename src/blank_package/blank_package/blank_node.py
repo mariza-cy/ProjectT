@@ -18,7 +18,7 @@ class Blinker(Node):
 
         self.wheel_pub = self.create_publisher(WheelsCmdStamped, f'/{self.vehicle_name}/wheels_cmd', 1)
         self.camera_sub = self.create_subscription(CompressedImage, f'/{self.vehicle_name}/image/compressed', self.save_image, 10)
-        self.tof_sub = self.create_subscription(Range, f'/{self.vehicle_name}/range', self.tof_test, 10)  # TODO change to check_range
+        self.tof_sub = self.create_subscription(Range, f'/{self.vehicle_name}/range', self.check_range, 10) 
         self.led_pub = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
 
         self.image_counter = 0
@@ -97,11 +97,11 @@ class Blinker(Node):
             self.stop()
         if dist <= 0.2:
             self.get_logger().info('Obstacle detected')
-            self.save_image = True
+            # self.save_image = True
             self.lights_red()
             self.turn_right()
         else:
-            self.same_obstacle = False
+            # self.same_obstacle = False
             self.lights_white()
             self.move_forward()
 
