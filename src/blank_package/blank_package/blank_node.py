@@ -32,8 +32,8 @@ class Blinker(Node):
             self.take_image = False
             self.same_obstacle = True
 
-            self.get_logger().info(f'Obstacle detected - Saving image #{self.image_counter}')
             self.image_counter += 1
+            self.get_logger().info(f'Obstacle detected - Saving image #{self.image_counter}')
             with open(self.output_dir + 'Obstacle ' + str(self.image_counter) + '.jpg', 'wb') as f:
                 f.write(msg.data)
 
@@ -46,7 +46,7 @@ class Blinker(Node):
         self.wheel_pub.publish(wheel_msg)
 
     def move_forward(self):
-        self.run_wheels(0.45, 0.3)
+        self.run_wheels(0.44, 0.3)
 
     def turn_right(self):
         self.run_wheels(0.3, -0.3)
@@ -57,9 +57,9 @@ class Blinker(Node):
     def stop(self):
         self.run_wheels(0.0, 0.0)
 
-    def lights_white(self):
+    def lights_green(self):
         msg = LEDPattern()
-        pattern = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
+        pattern = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)
         msg.rgb_vals = [pattern] * 5
         self.led_pub.publish(msg)
 
@@ -104,7 +104,7 @@ class Blinker(Node):
         else:
             self.take_image = False
             self.same_obstacle = False
-            self.lights_white()
+            self.lights_green()
             self.move_forward()
 
 
