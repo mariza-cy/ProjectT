@@ -7,7 +7,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import Range
 from rclpy.qos import QoSProfile
-from duckietown_msgs.msg import WheelsCmdStamped, WheelEncoderStamped
+from duckietown_msgs.msg import wheels_cmd, wheels_cmd_executed
 
 
 
@@ -42,15 +42,15 @@ class DriveToTarget (Node):
         self.target_y = 0.5  # meters
 
 
-        self.left_t = self.create_subscription(WheelEncoderStamped, f"/{self.vehicle}/left_wheel_encoder_node/tick", self.left_encoder_callback,
+        self.left_t = self.create_subscription(wheels_cmd_executed, f"/{self.vehicle}/left_wheel_encoder_node/tick", self.left_encoder_callback,
     QoSProfile(depth=10))           #Sub to duckie duckie's left encoder
 
 
-        self.right_t = self.create_subscription(WheelEncoderStamped, f"/{self.vehicle}/right_wheel_encoder_node/tick", self.right_encoder_callback,
+        self.right_t = self.create_subscription(wheels_cmd_executed, f"/{self.vehicle}/right_wheel_encoder_node/tick", self.right_encoder_callback,
     QoSProfile(depth=10))           #Sub to duckie duckie's right encoder
 
 
-        self.wheel_pub = self.create_publisher(WheelsCmdStamped, f"/{self.vehicle}/wheels_driver_node/wheels_cmd", 10)     #Pub to duckie duckie's motors so he can move
+        self.wheel_pub = self.create_publisher(wheels_cmd, f"/{self.vehicle}/wheels_driver_node/wheels_cmd", 10)     #Pub to duckie duckie's motors so he can move
 
 
         self.timer = self.create_timer(0.1, self.control_loop)
@@ -162,7 +162,7 @@ class DriveToTarget (Node):
             f"CMD → left: {left_t:.2f}, right: {right_t:.2f}"
         )
 
-        msg = WheelsCmdStamped()
+        msg = wheels_cmd()
         msg.vel_left = left_t         #duckie's motors get power
         msg.vel_right = right_t       #duckie's motors get power
         self.wheel_pub.publish(msg)
