@@ -123,21 +123,10 @@ class DriveToTarget (Node):
 
 
         # controls of duckie duckie
-        forward = 0.3 if distance > 0.05 else 0.0
+        forward = 0.3 if distance > 0.05else 0.0
         turn = 2.0 * heading_error
 
-        left = forward - turn
-        right = forward + turn
-
-        min_speed = 0.25
-
-        if abs(left) < min_speed:
-            left = math.copysign(min_speed, left)
-
-        if abs(right) < min_speed:
-            right = math.copysign(min_speed, right)
-
-        return left, right
+        return forward - turn, forward + turn
 
     def control_loop(self):
 
