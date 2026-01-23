@@ -126,9 +126,18 @@ class DriveToTarget (Node):
         forward = 0.3 if distance > 0.05 else 0.0
         turn = 2.0 * heading_error
 
+        left = forward - turn
+        right = forward + turn
 
-        return forward - turn, forward + turn
+        min_speed = 0.25
 
+        if abs(left) < min_speed:
+            left = math.copysign(min_speed, left)
+
+        if abs(right) < min_speed:
+            right = math.copysign(min_speed, right)
+
+        return left, right
 
     def control_loop(self):
 
@@ -149,10 +158,15 @@ class DriveToTarget (Node):
 
         left_t, right_t = self.compute_control()
 
+        self.get_logger().info(
+            f"CMD → left: {left_t:.2f}, right: {right_t:.2f}"
+        )
+
         msg = WheelsCmdStamped()
         msg.vel_left = left_t         #duckie's motors get power
         msg.vel_right = right_t       #duckie's motors get power
         self.wheel_pub.publish(msg)
+
 
 
 
