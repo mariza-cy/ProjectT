@@ -4,7 +4,7 @@ import rclpy
 import time
 from rclpy.node import Node
 from duckietown_msgs.msg import LEDPattern, WheelsCmdStamped
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import CompressedImage, Range
 from std_msgs.msg import ColorRGBA, Header
 
 
@@ -16,55 +16,26 @@ class Blinker(Node):
         self.output_dir = "/workspace/images/"
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # self.led_pub = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
         self.wheel_pub = self.create_publisher(WheelsCmdStamped, f'/{self.vehicle_name}/wheels_cmd', 1)
-        self.create_subscription(CompressedImage, f'/{self.vehicle_name}/image/compressed', self.save_image, 10)
+        self.camera_sub = self.create_subscription(CompressedImage, f'/{self.vehicle_name}/image/compressed', self.save_image, 10)
+        self.tof_sub = self.create_subscription(Range, f'/{self.vehicle_name}/range', self.tof_test, 10)  # TODO change to check_range
+        self.led_pub = self.create_publisher(LEDPattern, f'/{self.vehicle_name}/led_pattern', 1)
 
         self.image_counter = 0
-        self.counter = 0
-        self.obstacle = False
+        self.take_image = False
+        self.same_obstacle = False
 
-        self.timer = self.create_timer(1, self.move)
-
-        # self.counter1 = 0
-        # self.counter2 = 0
-
-        # self.timer = self.create_timer(1, self.change_color)
-        # self.timer = self.create_timer(1, self.move_forward)
-        # self.timer = self.create_timer(1, self.change_color_blink)
-
-    # def change_color(self):
-    #     msg = LEDPattern()
-
-    #     pattern = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
-
-    #     msg.rgb_vals = [pattern] * 5
-    #     self.led_pub.publish(msg)
-    
-    # def change_color_blink(self):
-    #     msg = LEDPattern()
-
-    #     pattern = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
-    #     pattern1 = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)  # 1 -> Red
-    #     pattern2 = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)  # 2 -> Green
-    #     pattern3 = ColorRGBA(r=0.0, g=0.0, b=1.0, a=1.0)  # 3 -> Blue
-    #     pattern4 = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)  # 4 -> White
-    #     pattern5 = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)  # 5 -> Yellow
-
-    #     if self.counter2%2 == 0: 
-    #         msg.rgb_vals = [pattern] * 5
-    #     else:
-    #         msg.rgb_vals = [pattern1] + [pattern2] + [pattern3] + [pattern4] + [pattern5]
-    #     self.counter2 += 1
-    #     self.led_pub.publish(msg)
+        # self.timer = self.create_timer(1, self.move)
 
     def save_image(self, msg):
-        if self.obstacle:
-            self.get_logger().info(f'Image {self.image_counter}')
+        if self.take_image and not same_obstacle:
+            self.get_logger().info(f'Image #{self.image_counter}')
             self.image_counter += 1
             with open(self.output_dir + str(self.image_counter) + '.jpg', 'wb') as f:
                 f.write(msg.data)
-            self.obstacle = False
+
+            self.take_image = False
+            self.same_obstacle = True
 
     def run_wheels(self, vel_left, vel_right):
         wheel_msg = WheelsCmdStamped()
@@ -86,25 +57,53 @@ class Blinker(Node):
     def stop(self):
         self.run_wheels(0.0, 0.0)
 
-    def move(self):
-        # if self.counter<=1 or (3<=self.counter and self.counter<=4):
-        #     self.move_forward()
-        # elif self.counter==2:
-        #     self.turn_right()
-        # elif self.counter==5:
-        #     self.turn_left()
-        # else:
-        #     self.stop()
+    def lights_white(self):
+        pattern = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
+        msg.rgb_vals = [pattern] * 5
+        self.led_pub.publish(msg)
+
+    def lights_red(self):
+        pattern = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
+        msg.rgb_vals = [pattern] * 5
+        self.led_pub.publish(msg)
+
+    def move(self):  # Just for testing (moves forward for ~2 seconds, turns right, moves forward for ~2 more seconds, turns left and stops)
+        if self.counter<=1 or (3<=self.counter and self.counter<=4):
+            self.move_forward()
+        elif self.counter==2:
+            self.turn_right()
+        elif self.counter==5:
+            self.turn_left()
+        else:
+            self.stop()
         
-        # if self.counter<10:
-        #     self.counter+=1
+        if self.counter<10:
+            self.counter+=1
 
-        self.get_logger().info(f'Counter: {self.counter}')
+    def tof_test(self, msg):  # Just for testing (Moves unless there is an obstacle in front of it)
+        dist = msg.range
 
-        if self.counter%2==0:
-            self.obstacle = True
+        if dist <= 0.2:
+            self.stop()
+        else:
+            self.move_forward()
 
-        self.counter += 1
+
+    def check_range(self, msg):
+        dist = msg.range
+
+        if dist <= 0.01:
+            self.get_logger().info('Obstacle very close, stopping')
+            self.stop()
+        if dist <= 0.2:
+            self.get_logger().info('Obstacle detected')
+            self.save_image = True
+            self.lights_red()
+            self.turn_right()
+        else:
+            self.same_obstacle = False
+            self.lights_white()
+            self.move_forward()
 
 
 def main():
